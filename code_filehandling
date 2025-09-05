@@ -1,0 +1,133 @@
+import csv
+
+student = {}
+
+
+def add_student(ids, name, age, *grades):
+    student[ids] = {
+        "info": (ids, name),
+        "age": age,
+        "grades": list(grades)
+    }
+    print(f"Student {name} added successfully.")
+    save_to_file()
+
+
+def save_to_file(filename="students.csv"):
+    with open(filename, "w", newline="") as f:
+        writer = csv.writer(f)
+        for sid, details in student.items():
+            writer.writerow([sid, details["info"][1], details["age"]] + details["grades"])
+
+
+def display_student():
+    if not student:
+        print("No students available.")
+        return
+
+    for sid, details in student.items():
+        print(
+            f"ID: {details['info'][0]}, Name: {details['info'][1]}, Age: {details['age']}, Grades: {details['grades']}")
+        for g in details['grades']:
+            print(f"   Grade: {g}")
+
+
+def update_student(ids, name=None, age=None, grades=None):
+    if ids not in student:
+        print("Student not found.")
+        return
+
+    s = student[ids]
+    if name is not None:
+        s["info"] = (ids, name)
+    if age is not None:
+        s["age"] = age
+    if grades is not None:
+        s["grades"] = grades
+    print("Student updated successfully.")
+    save_to_file()
+
+
+def delete_student(ids):
+    if ids in student:
+        del student[ids]
+        print("Student successfully deleted.")
+        save_to_file()
+    else:
+        print("Student not found.")
+
+
+def load_file(filename="students.csv"):
+    try:
+        with open(filename, "r") as f:
+            reader = csv.reader(f)
+            for row in reader:
+                sid = row[0]
+                name = row[1]
+                age = int(row[2])
+
+                grades = []
+                for g in row[3:]:
+                    g = g.strip("[]")
+                    if g:
+                        grades.append(int(g))
+
+                student[sid] = {"info": (sid, name), "age": age, "grades": grades}
+        print("Data loaded successfully.")
+    except FileNotFoundError:
+        print("No existing file found. Starting fresh.")
+
+
+load_file()
+
+
+while True:
+    print("\nSTUDENT MANAGEMENT")
+    print("1. Add Student")
+    print("2. Display Students")
+    print("3. Update Student")
+    print("4. Delete Student")
+    print("5. Save to File")
+    print("6. Load from File")
+    print("7. Exit")
+
+    choice = input("Enter number: ")
+
+    if choice == "1":
+        sid = input("Enter your ID: ")
+        name = input("Enter your name: ")
+        age = int(input("Enter your age: "))
+        grades = input("Enter grades separated by space: ").split()
+        grades = [int(g) for g in grades]
+        add_student(sid, name, age, *grades)
+
+    elif choice == "2":
+        display_student()
+        print("All items: ", list(student.items()))
+
+    elif choice == "3":
+        sid = input("Enter ID to update: ")
+        name = input("Enter new Name (or press Enter to skip): ") or None
+        age = input("Enter new Age (or press Enter to skip): ")
+        age = int(age) if age else None
+        grades = input("Enter new grades separated by space (or press Enter to skip): ")
+        grades = [int(g) for g in grades.split()] if grades else None
+        update_student(sid, name=name, age=age, grades=grades)
+
+    elif choice == "4":
+        sid = input("Enter ID to delete: ")
+        delete_student(sid)
+
+    elif choice == "5":
+        save_to_file()
+        print("Data saved manually.")
+
+    elif choice == "6":
+        load_file()
+
+    elif choice == "7":
+        print("Exiting program...")
+        break
+
+    else:
+        print("Invalid choice, try again.")
